@@ -247,7 +247,6 @@ RivuletViewer.prototype.addSwcToScene = function() {
 	if (this.mode === 'particle') {
 
 		var sphereImg = this.createSphereImage();
-		this.geometry = new THREE.Geometry();
 		// properties that may vary from particle to particle. only accessible in vertex shaders!
 		//	(can pass color info to fragment shader via vColor.)
 		// compute scale for particles, in pixels
@@ -263,14 +262,34 @@ RivuletViewer.prototype.addSwcToScene = function() {
 			sphereTexture: { type: 't', value: sphereImg },
 		};
 
-		for (var node in this.swc) {
-			if (this.swc.hasOwnProperty(node)) {
-				var particle_vertex = this.generateParticle(this.swc[node]);
-				this.geometry.vertices.push(particle_vertex);
-				customAttributes.radius.value.push(this.swc[node].radius);
-				customAttributes.typeColor.value.push(this.nodeColor(this.swc[node]));
+		if (this.animateSwc){
+			var geo = new THREE.Geometry();
+
+			for (i = 0; i < this.nodesPerUpdate; i++ ){
+		    	var nodeidx = i + this.nodectr;
+				var nodeidxstr = nodeidx.toString();
+			    if (this.swc.hasOwnProperty(nodeidxstr) ) {
+			    	var node = this.swc[nodeidxstr];
+			    	// if (this.swc.hasOwnProperty(node.parent)) {
+					var particle_vertex = this.generateParticle(node);
+					geo.vertices.push(particle_vertex);
+					customAttributes.radius.value.push(node.radius);
+					customAttributes.typeColor.value.push(this.nodeColor(node));
+				}
 			}
-		} 
+		}
+		else{
+			this.geometry = new THREE.Geometry();
+			for (var node in this.swc) {
+				if (this.swc.hasOwnProperty(node)) {
+					var particle_vertex = this.generateParticle(this.swc[node]);
+					this.geometry.vertices.push(particle_vertex);
+					customAttributes.radius.value.push(this.swc[node].radius);
+					customAttributes.typeColor.value.push(this.nodeColor(this.swc[node]));
+				}
+			} 
+		}
+
 		this.material = new THREE.ShaderMaterial(
 		{
 			uniforms : customUniforms,
@@ -286,7 +305,13 @@ RivuletViewer.prototype.addSwcToScene = function() {
 		});
 
 
-		var particles = new THREE.PointCloud(this.geometry, this.material);
+		if (this.animateSwc){
+			var particles = new THREE.PointCloud(geo, this.material);
+		}
+		else{
+			var particles = new THREE.PointCloud(this.geometry, this.material);
+		}
+
 		particles.sortParticles = false;
 		this.neuron.add(particles);
 
@@ -336,34 +361,72 @@ RivuletViewer.prototype.addSwcToScene = function() {
 				new THREE.Vector2(0.5, 1)
 			];
 			var coneGeom = new THREE.Geometry();
-			for (var node in this.swc) {
-				if (this.swc.hasOwnProperty(node)) {
-					if (this.swc.hasOwnProperty(this.swc[node].parent)) {
-						// Child/first position
-						var cone = this.generateCone(this.swc[node], this.swc[this.swc[node].parent]);
-						var ix2 = coneGeom.vertices.push(cone.child.vertex);
-						coneAttributes.radius.value.push(cone.child.radius);
-						coneAttributes.typeColor.value.push(cone.child.color);
-						
-						coneGeom.vertices.push(cone.parent.vertex);
-						coneAttributes.radius.value.push(cone.parent.radius);
-						coneAttributes.typeColor.value.push(cone.parent.color);
-						
-						// Paint two triangles to make a cone-imposter quadrilateral
-						// Triangle #1
-						var coneFace = new THREE.Face3(ix2 - 1, ix2 - 1, ix2);
-						coneFace.vertexNormals = [ cone.normal1, cone.normal2, cone.normal2 ];
-						coneGeom.faces.push(coneFace);
-						// Simple texture coordinates should be modified in the vertex shader
-						coneGeom.faceVertexUvs[0].push(uvs);
-						// Triangle #2
-						coneFace = new THREE.Face3(ix2, ix2, ix2-1);
-						coneFace.vertexNormals = [ cone.normal1, cone.normal2, cone.normal1 ];
-						coneGeom.faces.push(coneFace);
-						coneGeom.faceVertexUvs[0].push(uvs);
+
+			if (this.animateSwc){
+				for (i = 0; i < this.nodesPerUpdate; i++ ){
+			    	var nodeidx = i + this.nodectr;
+					var nodeidxstr = nodeidx.toString();
+				    if (this.swc.hasOwnProperty(nodeidxstr) ) {
+				    	var node = this.swc[nodeidxstr];
+					    	if (this.swc.hasOwnProperty(node.parent)) {
+
+							// Child/first position
+							var cone = this.generateCone(node, this.swc[node.parent]);
+							var ix2 = coneGeom.vertices.push(cone.child.vertex);
+							coneAttributes.radius.value.push(cone.child.radius);
+							coneAttributes.typeColor.value.push(cone.child.color);
+							
+							coneGeom.vertices.push(cone.parent.vertex);
+							coneAttributes.radius.value.push(cone.parent.radius);
+							coneAttributes.typeColor.value.push(cone.parent.color);
+							
+							// Paint two triangles to make a cone-imposter quadrilateral
+							// Triangle #1
+							var coneFace = new THREE.Face3(ix2 - 1, ix2 - 1, ix2);
+							coneFace.vertexNormals = [ cone.normal1, cone.normal2, cone.normal2 ];
+							coneGeom.faces.push(coneFace);
+							// Simple texture coordinates should be modified in the vertex shader
+							coneGeom.faceVertexUvs[0].push(uvs);
+							// Triangle #2
+							coneFace = new THREE.Face3(ix2, ix2, ix2-1);
+							coneFace.vertexNormals = [ cone.normal1, cone.normal2, cone.normal1 ];
+							coneGeom.faces.push(coneFace);
+							coneGeom.faceVertexUvs[0].push(uvs);
+						}
 					}
 				}
-			} 
+			}
+			else{
+				for (var node in this.swc) {
+					if (this.swc.hasOwnProperty(node)) {
+						if (this.swc.hasOwnProperty(this.swc[node].parent)) {
+							// Child/first position
+							var cone = this.generateCone(this.swc[node], this.swc[this.swc[node].parent]);
+							var ix2 = coneGeom.vertices.push(cone.child.vertex);
+							coneAttributes.radius.value.push(cone.child.radius);
+							coneAttributes.typeColor.value.push(cone.child.color);
+							
+							coneGeom.vertices.push(cone.parent.vertex);
+							coneAttributes.radius.value.push(cone.parent.radius);
+							coneAttributes.typeColor.value.push(cone.parent.color);
+							
+							// Paint two triangles to make a cone-imposter quadrilateral
+							// Triangle #1
+							var coneFace = new THREE.Face3(ix2 - 1, ix2 - 1, ix2);
+							coneFace.vertexNormals = [ cone.normal1, cone.normal2, cone.normal2 ];
+							coneGeom.faces.push(coneFace);
+							// Simple texture coordinates should be modified in the vertex shader
+							coneGeom.faceVertexUvs[0].push(uvs);
+							// Triangle #2
+							coneFace = new THREE.Face3(ix2, ix2, ix2-1);
+							coneFace.vertexNormals = [ cone.normal1, cone.normal2, cone.normal1 ];
+							coneGeom.faces.push(coneFace);
+							coneGeom.faceVertexUvs[0].push(uvs);
+						}
+					}
+				} 
+			}
+
 			var coneMaterial = new THREE.ShaderMaterial(
 			{
 				attributes: coneAttributes,
