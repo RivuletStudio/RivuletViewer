@@ -233,14 +233,19 @@ RivuletViewer.prototype.setup = function() {
 };
 
 
+RivuletViewer.prototype.rebuildNeuron = function() {
+	console.log('rebuildNeuron called');
+	this.scene.remove(this.neuron);
+	this.neuron = new THREE.Object3D();                
+	this.neuron.position.set(-this.center[0], -this.center[1], -this.center[2]);
+	this.scene.add(this.neuron);
+};
+
+
 RivuletViewer.prototype.addSwcToScene = function() {
 
 	if (this.animateSwc && this.nodectr == 0){
-		console.log("Reset");
-		this.scene.remove(this.neuron);
-		this.neuron = new THREE.Object3D();                
-		this.neuron.position.set(-this.center[0], -this.center[1], -this.center[2]);
-		this.scene.add(this.neuron);
+		this.rebuildNeuron();
 	}
 
 	//particle mode uses vertex info to place texture image, very fast
