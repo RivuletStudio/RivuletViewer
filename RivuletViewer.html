@@ -42,6 +42,7 @@
 </head>
 <body>
 	<label for='swc_input'>Upload a swc file to view it in the RivuletViewer:</label><input type='file' name='swc_input' id='swc_input' />
+	<button type="button" name="animate" id='animate'>Animate</button>
 	<!-- three.js container -->
     	<div id="container" style='position:relative'></div>
 	<!-- info on screen display -->
@@ -49,6 +50,8 @@
 
 	<script type='text/javascript'>
 	var mdata;
+	var s;
+
 	function readSwcFile(e) {
 		var f = e.target.files[0]; 
 		if (f) {
@@ -60,13 +63,13 @@
 					//remove previous neuron
 					document.getElementById('container').innerHTML = "";
 
-					var s = new RivuletViewer({
+					s = new RivuletViewer({
 						swc: swc, 
 						dom_element: 'container', 
 						center_node: -1, 
 						show_stats: true, 
 						metadata: mdata,
-						mode: 'particle'
+						mode: 'skeleton'
 					});
 					s.init();
 					s.animate();
@@ -81,8 +84,13 @@
 		}
 	}
 
+    function animateSwc(){
+    	s.animateSwc = !s.animateSwc;
+    }
+
 	window.onload = function() {
 		document.getElementById('swc_input').addEventListener('change', readSwcFile, false);
+		document.getElementById('animate').addEventListener('click', animateSwc);
 
 		// var swc = swc_parser(document.getElementById("swc").text);
 		// mdata = JSON.parse(document.getElementById("metadata_swc").text);

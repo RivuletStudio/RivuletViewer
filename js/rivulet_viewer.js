@@ -1,14 +1,16 @@
 var RivuletViewer = function (parameters) {
     SharkViewer.call(this);
+    this.animateSwc = false;
     this.setValues(parameters);
-}
+	this.fov = 45;
+	this.nodectr = 0;
+	this.framectr = 0;
+	this.nodesPerUpdate = 30;
+};
 
 RivuletViewer.prototype = Object.create(SharkViewer.prototype);
 
-//Sets up three.js scene 
-RivuletViewer.prototype.init = function () {
-
-	console.log(this.swc);
+RivuletViewer.prototype.setup = function() {
 	//set up shaders
 	this.vertexShader =  [
 		'uniform float particleScale;',
@@ -221,15 +223,26 @@ RivuletViewer.prototype.init = function () {
 	this.scene = new THREE.Scene();
 
 	// put a camera in the scene
-	var fov = 45;
-	var cameraPosition = this.calculateCameraPosition(fov);
-	this.camera = new THREE.PerspectiveCamera(fov, this.WIDTH/this.HEIGHT, 1, cameraPosition * 5);
+	var cameraPosition = this.calculateCameraPosition(this.fov);
+	this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH/this.HEIGHT, 1, cameraPosition * 5);
 	this.scene.add(this.camera);
 	this.camera.position.z = cameraPosition;
 	
 	//neuron is object 3d which ensures all components move together
 	this.neuron = new THREE.Object3D();
-	
+};
+
+
+RivuletViewer.prototype.addSwcToScene = function() {
+
+	if (this.animateSwc && this.nodectr == 0){
+		console.log("Reset");
+		this.scene.remove(this.neuron);
+		this.neuron = new THREE.Object3D();                
+		this.neuron.position.set(-this.center[0], -this.center[1], -this.center[2]);
+		this.scene.add(this.neuron);
+	}
+
 	//particle mode uses vertex info to place texture image, very fast
 	if (this.mode === 'particle') {
 
@@ -238,7 +251,7 @@ RivuletViewer.prototype.init = function () {
 		// properties that may vary from particle to particle. only accessible in vertex shaders!
 		//	(can pass color info to fragment shader via vColor.)
 		// compute scale for particles, in pixels
-		var particleScale =  this.calculateParticleSize(fov);
+		var particleScale =  this.calculateParticleSize(this.fov);
 		var customAttributes = 
 		{
 			radius:   { type: "fv1", value: [] },
@@ -388,62 +401,107 @@ RivuletViewer.prototype.init = function () {
 		}
 	}
 	
-	if (this.mode === 'skeleton' || this.show_cones === false) {
+	if (this.mode === 'skeleton') {
 		this.material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors  });
-		this.geometry = new THREE.Geometry();
-		
-		// for (var node in this.swc) {
-		// 	if (this.swc.hasOwnProperty(node)) {
-		// 		if (this.swc[node].parent != -1) {
-		// 			var verticies = this.generateSkeleton(this.swc[node], this.swc[this.swc[node].parent]);
-		// 			this.geometry.vertices.push(verticies.child);
-		// 			this.geometry.colors.push(verticies.child_color);
-		// 			this.geometry.vertices.push(verticies.parent);
-		// 			this.geometry.colors.push(verticies.parent_color);
-		// 		}
-		// 	}
-		// } 
-		var line = new THREE.Line(this.geometry, this.material, THREE.LinePieces);
-		this.neuron.add(line);
 
-		if (this.annotation) {
-			var sphereImg = this.createSphereImage();
-			// properties that may vary from particle to particle. only accessible in vertex shaders!
-			//	(can pass color info to fragment shader via vColor.)
-			// compute scale for particles, in pixels
-			var particleScale =  this.calculateParticleSize(fov);
-			var radii_avg = this.avgRadii();
-			var customUniforms = 
-			{
-				particleScale: { type: 'f', value: particleScale },
-				sphereTexture: { type: 't', value: sphereImg },
-			};
-			var customAttributesAnnotation = 
-			{
-				radius:   { type: "fv1", value: [] },
-				typeColor:   { type: "c", value: [] },
-			};
-			this.annotation_geometry = new THREE.Geometry();
-			for (var annot in this.annotation) {
-				var anno_vertex = this.generateParticle(this.annotation[annot]);
-				this.annotation_geometry.vertices.push(anno_vertex);
-				customAttributesAnnotation.radius.value.push(radii_avg);
-				customAttributesAnnotation.typeColor.value.push(new THREE.Color(this.annotation_color));
+	    if (this.animateSwc){
+
+	        var geo = new THREE.Geometry();
+
+			for (i = 0; i < this.nodesPerUpdate; i++ ){
+		    	var nodeidx = i + this.nodectr;
+				var nodeidxstr = nodeidx.toString();
+				    if (this.swc.hasOwnProperty(nodeidxstr) ) {
+				    	var node = this.swc[nodeidxstr];
+				    	if (this.swc.hasOwnProperty(node.parent)) {
+							var verticies = this.generateSkeleton(node, this.swc[node.parent]);
+							geo.vertices.push(verticies.child);
+							geo.colors.push(verticies.child_color);
+							geo.vertices.push(verticies.parent);
+							geo.colors.push(verticies.parent_color);
+
+					        var line = new THREE.Line(geo, this.material, THREE.LinePieces);
+							this.neuron.add(line);
+				    	}
+				    }
 			}
-			this.material_annotation = new THREE.ShaderMaterial(
-			{
-				uniforms : customUniforms,
-				attributes : customAttributesAnnotation,
-				vertexShader : vertexShader,
-				fragmentShader : fragmentShaderAnnotation,
-				transparent : true, 
-				depthTest : true,
-			});
-			var particles_annotation = new THREE.ParticleSystem(this.annotation_geometry, this.material_annotation);
-			particles_annotation.sortParticles = false;
-			this.neuron.add(particles_annotation);
+            
+	    }
+	    else{
+			this.geometry = new THREE.Geometry();
+			
+			for (var node in this.swc) {
+				if (this.swc.hasOwnProperty(node)) {
+					if (this.swc.hasOwnProperty(this.swc[node].parent)) {
+						var verticies = this.generateSkeleton(this.swc[node], this.swc[this.swc[node].parent]);
+						this.geometry.vertices.push(verticies.child);
+						this.geometry.colors.push(verticies.child_color);
+						this.geometry.vertices.push(verticies.parent);
+						this.geometry.colors.push(verticies.parent_color);
+					}
+				}
+			} 
+
+			var line = new THREE.Line(this.geometry, this.material, THREE.LinePieces);
+			this.neuron.add(line);
+
+            // The Annotaion is not currently used for simplicity
+			// if (this.annotation) {
+			// 	var sphereImg = this.createSphereImage();
+			// 	// properties that may vary from particle to particle. only accessible in vertex shaders!
+			// 	//	(can pass color info to fragment shader via vColor.)
+			// 	// compute scale for particles, in pixels
+			// 	var particleScale =  this.calculateParticleSize(this.fov);
+			// 	var radii_avg = this.avgRadii();
+			// 	var customUniforms = 
+			// 	{
+			// 		particleScale: { type: 'f', value: particleScale },
+			// 		sphereTexture: { type: 't', value: sphereImg },
+			// 	};
+			// 	var customAttributesAnnotation = 
+			// 	{
+			// 		radius:   { type: "fv1", value: [] },
+			// 		typeColor:   { type: "c", value: [] },
+			// 	};
+			// 	this.annotation_geometry = new THREE.Geometry();
+			// 	for (var annot in this.annotation) {
+			// 		var anno_vertex = this.generateParticle(this.annotation[annot]);
+			// 		this.annotation_geometry.vertices.push(anno_vertex);
+			// 		customAttributesAnnotation.radius.value.push(radii_avg);
+			// 		customAttributesAnnotation.typeColor.value.push(new THREE.Color(this.annotation_color));
+			// 	}
+			// 	this.material_annotation = new THREE.ShaderMaterial(
+			// 	{
+			// 		uniforms : customUniforms,
+			// 		attributes : customAttributesAnnotation,
+			// 		vertexShader : vertexShader,
+			// 		fragmentShader : fragmentShaderAnnotation,
+			// 		transparent : true, 
+			// 		depthTest : true,
+			// 	});
+			// 	var particles_annotation = new THREE.ParticleSystem(this.annotation_geometry, this.material_annotation);
+			// 	particles_annotation.sortParticles = false;
+			// 	this.neuron.add(particles_annotation);
+			// }
 		}
 	}
+
+};
+
+
+//Sets up three.js scene 
+RivuletViewer.prototype.init = function () {
+
+    // Count the number of swc nodes
+    this.nswc = 0;
+    for (var n in this.swc){
+    	if (this.swc.hasOwnProperty(n)){
+    		++this.nswc;
+    	}
+    }
+
+	this.setup();
+	this.addSwcToScene();
 	
 	//centers neuron
 	this.neuron.position.set(-this.center[0], -this.center[1], -this.center[2]);
@@ -483,4 +541,28 @@ RivuletViewer.prototype.init = function () {
 	//Controls
 	this.controls = new THREE.TrackballControls(this.camera, this.renderer.domElement);
 	this.controls.addEventListener('change', this.render.bind(this));
+};
+
+// animation loop
+RivuletViewer.prototype.animate = function () {
+	// loop on request animation loop
+	// - it has to be at the begining of the function
+	// - see details at http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+	requestAnimationFrame(this.animate.bind(this));
+	this.controls.update();
+
+    if (this.animateSwc){
+        this.addSwcToScene();
+
+	    this.nodectr += this.nodesPerUpdate;
+		this.framectr++;
+
+	    if (this.nodectr > this.nswc) { // To go all over again
+	    	this.nodectr = 0;
+			this.framectr = 0;
+	    }
+    }
+
+	this.render();
+
 };
