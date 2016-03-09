@@ -43,6 +43,7 @@
 <body>
 	<label for='swc_input'>Upload a swc file to view it in the RivuletViewer:</label><input type='file' name='swc_input' id='swc_input' />
 	<button type="button" name="animate" id='animate'>Animate</button>
+	<button type="button" name="switch" id='switch'>Switch Mode</button>
 	<!-- three.js container -->
     	<div id="container" style='position:relative'></div>
 	<!-- info on screen display -->
@@ -88,9 +89,21 @@
     	s.animateSwc = !s.animateSwc;
     }
 
+    function switchMode() {
+    	if (s.mode == 'particle')	{
+	    	s.mode = 'skeleton';
+    	}
+    	else{
+    	    s.mode = 'particle';
+    	}
+
+    	console.log(s.mode);
+    }
+
 	window.onload = function() {
 		document.getElementById('swc_input').addEventListener('change', readSwcFile, false);
 		document.getElementById('animate').addEventListener('click', animateSwc);
+		document.getElementById('switch').addEventListener('click', switchMode);
 
 		// var swc = swc_parser(document.getElementById("swc").text);
 		// mdata = JSON.parse(document.getElementById("metadata_swc").text);
