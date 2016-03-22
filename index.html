@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 	<head>
-		<title>Shark Viewer</title>
+		<title>Rivulet Viewer</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		
@@ -53,6 +53,7 @@
 	<label for='swc_input'>Upload a swc file to view it in the RivuletViewer:</label><input type='file' name='swc_input' id='swc_input' />
 	<button type="button" name="animate" id='animate'>Animate</button>
 	<button type="button" name="switch" id='switch'>Switch Mode</button>
+	<button type="button" name="recentre" id='recentre'>Recenter</button>
 	<p>
 	  <label for="amount">Animation Speed:</label>
 	  <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
@@ -119,6 +120,10 @@
 	    }
     }
 
+    function recentre() {
+        s.recentreNeuron();	
+    }
+
 	window.onload = function() {
 	// $(function() {
 		$( "#slider" ).slider({	value:5,
@@ -136,6 +141,7 @@
 		document.getElementById('swc_input').addEventListener('change', readSwcFile, false);
 		document.getElementById('animate').addEventListener('click', animateSwc);
 		document.getElementById('switch').addEventListener('click', switchMode);
+		document.getElementById('recentre').addEventListener('click', recentre);
 
 		// var swc = swc_parser(document.getElementById("swc").text);
 		// mdata = JSON.parse(document.getElementById("metadata_swc").text);

@@ -239,7 +239,22 @@ RivuletViewer.prototype.rebuildNeuron = function() {
 	this.neuron = new THREE.Object3D();                
 	this.neuron.position.set(-this.center[0], -this.center[1], -this.center[2]);
 	this.scene.add(this.neuron);
+
 };
+
+
+RivuletViewer.prototype.recentreNeuron = function() {
+
+	var fov = 45;
+	var cameraPosition = this.calculateCameraPosition(fov);
+	// this.camera = new THREE.PerspectiveCamera(fov, this.WIDTH/this.HEIGHT, 1, cameraPosition * 5);
+	// this.scene.add(this.camera);
+	this.camera.position = cameraPosition;
+
+	//Controls
+	// this.controls = new THREE.TrackballControls(this.camera, this.renderer.domElement);
+	// this.controls.addEventListener('change', this.render.bind(this));
+}
 
 
 RivuletViewer.prototype.addSwcToScene = function() {
