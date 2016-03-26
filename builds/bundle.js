@@ -110,10 +110,9 @@
 	};
 
 
-	var DropzoneDemo = React.createClass({displayName: "DropzoneDemo",
+	var DropzoneRegion = React.createClass({displayName: "DropzoneRegion",
 	    onDrop: function (files) {
 		    readSwcFile(files[0]);    	
-			// console.log('Received files: ', files);
 	    },
 
 	    render: function () {
@@ -141,7 +140,7 @@
 	}
 
 
-	ReactDom.render(React.createElement(DropzoneDemo, null), document.getElementById('filedrop'));
+	ReactDom.render(React.createElement(DropzoneRegion, null), document.getElementById('filedrop'));
 
 /***/ },
 /* 1 */
