@@ -64,10 +64,9 @@ function recentre() {
 };
 
 
-var DropzoneDemo = React.createClass({
+var DropzoneRegion = React.createClass({
     onDrop: function (files) {
 	    readSwcFile(files[0]);    	
-		// console.log('Received files: ', files);
     },
 
     render: function () {
@@ -95,4 +94,4 @@ window.onload = function() {
 }
 
 
-ReactDom.render(<DropzoneDemo />, document.getElementById('filedrop'));
+ReactDom.render(<DropzoneRegion />, document.getElementById('filedrop'));
