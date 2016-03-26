@@ -53,8 +53,8 @@
 	var mdata;
 	var s;
 
-	function readSwcFile(e) {
-		var f = e.target.files[0]; 
+	function readSwcFile(f) {
+		// var f = e.target.files[0]; 
 		if (f) {
 			var r = new FileReader();
 			r.onload = function(e2) { 
@@ -112,12 +112,13 @@
 
 	var DropzoneDemo = React.createClass({displayName: "DropzoneDemo",
 	    onDrop: function (files) {
-	      console.log('Received files: ', files);
+		    readSwcFile(files[0]);    	
+			// console.log('Received files: ', files);
 	    },
 
 	    render: function () {
 	      return (
-	          React.createElement("div", null, React.createElement(Dropzone, {onDrop: this.onDrop}, React.createElement("div", null, "Try dropping some files here, or click to select files to upload.")))
+	          React.createElement(Dropzone, {onDrop: this.onDrop}, React.createElement("div", null, "Drop SWC File here"))
 	      );
 	    }
 	});

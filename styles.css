@@ -1,0 +1,17 @@
+#controls{
+    overflow:hidden;
+    /*background:yellow;*/
+    position:relative;
+}
+#filedrop{
+    padding-right:50px;
+    width:40%;
+}
+#animationcontrol{
+    /*background:red;*/
+    width:40%;
+    position:absolute;
+    height:100%;
+    top:0;
+    left:30%;
+}

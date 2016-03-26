@@ -7,8 +7,8 @@ var ReactDom = require('react-dom');
 var mdata;
 var s;
 
-function readSwcFile(e) {
-	var f = e.target.files[0]; 
+function readSwcFile(f) {
+	// var f = e.target.files[0]; 
 	if (f) {
 		var r = new FileReader();
 		r.onload = function(e2) { 
@@ -66,12 +66,13 @@ function recentre() {
 
 var DropzoneDemo = React.createClass({
     onDrop: function (files) {
-      console.log('Received files: ', files);
+	    readSwcFile(files[0]);    	
+		// console.log('Received files: ', files);
     },
 
     render: function () {
       return (
-          <div><Dropzone onDrop={this.onDrop}><div>Try dropping some files here, or click to select files to upload.</div></Dropzone></div>
+          <Dropzone onDrop={this.onDrop}><div>Drop SWC File here</div></Dropzone>
       );
     }
 });
