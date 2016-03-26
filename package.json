@@ -1,0 +1,26 @@
+{
+  "name": "RivuletViewer",
+  "version": "0.0.0",
+  "description": "JS-based viewer for neuron images and swc. Extended from SharkViewer (https://github.com/JaneliaSciComp/SharkViewer)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lsqshr/RivuletViewer.git"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/lsqshr/RivuletViewer/issues"
+  },
+  "devDependencies": {
+    "webpack": "~1.12.14",
+    "jquery": "~2.2.2",
+    "jquery-slider": "0.0.1"
+  },
+  "dependencies": {
+    "jquery": "~2.2.2"
+  }
+}
